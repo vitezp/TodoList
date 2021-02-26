@@ -1,9 +1,10 @@
 using System.Data;
 using System.Linq;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using TodoList.DAL.Models;
+using TodoList.Data;
+using TodoList.Data.Models;
+using TodoList.Shared.Domain;
 using Xunit;
 
 namespace TodoList.DAL.Tests

@@ -5,11 +5,16 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AutoMapper" Version="10.1.1" />
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
+        <PackageReference Include="FluentValidation.AspNetCore" Version="9.5.1" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="9.5.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" /> 
         <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TodoList.DAL\TodoList.DAL.csproj" />
+      <ProjectReference Include="..\TodoList.Data\TodoList.Data.csproj" />
     </ItemGroup>
 
 </Project>

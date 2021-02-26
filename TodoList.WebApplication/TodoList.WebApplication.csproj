@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TodoList.API\TodoList.API.csproj" />
+      <ProjectReference Include="..\TodoList.Shared\TodoList.Shared.csproj" />
     </ItemGroup>
 
 </Project>
