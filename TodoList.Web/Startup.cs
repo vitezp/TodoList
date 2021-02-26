@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -5,9 +6,9 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
+using TodoList.Api.Controllers;
 
-namespace TodoList.React.Web
+namespace TodoList.Web
 {
     public class Startup
     {
@@ -21,7 +22,8 @@ namespace TodoList.React.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            services.AddMvc().AddApplicationPart(typeof(WeatherForecastController).GetTypeInfo().Assembly);
+            //services.AddControllersWithViews();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ClientApp/build"; });
@@ -53,7 +55,7 @@ namespace TodoList.React.Web
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
             });
-
+            app.UseCors(builder => builder.WithOrigins("http://localhost:3000", "https://localhost:3000"));
             app.UseSpa(spa =>
             {
                 spa.Options.SourcePath = "ClientApp";
@@ -63,29 +65,6 @@ namespace TodoList.React.Web
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
-            
-            // app.UseHealthChecks("/health", new HealthCheckOptions
-            // {
-            //     ResponseWriter = async (context, report) =>
-            //     {
-            //         context.Response.ContentType = "application/json";
-            //
-            //         var response = new HealthCheckResponse
-            //         {
-            //             Status = report.Status.ToString(),
-            //             Checks = report.Entries.Select(x => new HealthCheck
-            //             {
-            //                 Component = x.Key,
-            //                 Status = x.Value.Status.ToString(),
-            //                 Description = x.Value.Description
-            //             }),
-            //             Duration = report.TotalDuration
-            //         };
-            //
-            //         await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
-            //     }
-            // });
-            
         }
     }
 }

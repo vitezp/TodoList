@@ -11,7 +11,6 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="5.0.3" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.0.7" />    
     </ItemGroup>
 
     <ItemGroup>
@@ -22,8 +21,11 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Include="ClientApp\src\components\TodoList.js" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\TodoList.Api\TodoList.Api.csproj" />
-      <ProjectReference Include="..\TodoList.Shared\TodoList.Shared.csproj" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

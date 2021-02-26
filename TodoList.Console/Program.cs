@@ -4,8 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using TodoList.DAL;
-using TodoList.DAL.Models;
+using TodoList.Data;
+using TodoList.Data.Models;
+using TodoList.Shared.Domain;
 
 namespace TodoList.Console
 {
