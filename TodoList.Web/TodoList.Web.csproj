@@ -21,11 +21,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TodoList.Api\TodoList.Api.csproj" />
+      <Content Include="ClientApp\src\components\TodoList.js" />
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="ClientApp\src\components\TodoList.js" />
+      <ProjectReference Include="..\TodoList.Api\TodoList.Api.csproj" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

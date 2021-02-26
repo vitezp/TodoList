@@ -5,11 +5,11 @@ VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoList.Console", "TodoList.Console\TodoList.Console.csproj", "{5B7AE815-1FA3-4B4C-AF71-20D1C066C243}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoList.DAL.UnitTests", "TodoList.DAL.UnitTests\TodoList.DAL.UnitTests.csproj", "{A13725D1-7A8E-494F-B32D-752BF178B357}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoList.Data.UnitTests", "TodoList.Data.UnitTests\TodoList.Data.UnitTests.csproj", "{A13725D1-7A8E-494F-B32D-752BF178B357}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoList.Shared", "TodoList.Shared\TodoList.Shared.csproj", "{2F73569D-CE30-4086-86B6-5C4E6B4FE6C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoList.Api", "TodoList.Api\TodoList.Api.csproj", "{F9B2752B-0FD4-4F7F-ADEE-9AD4336DF715}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoList.Api", "TodoList.Api\TodoList.Api.csproj", "{F9B2752B-0FD4-4F7F-ADEE-9AD4336DF715}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoList.Data", "TodoList.Data\TodoList.Data.csproj", "{17971744-C2BA-4F60-9120-E99E79769E57}"
 EndProject
