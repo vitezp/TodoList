@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TodoList.Application.Interfaces;
-using TodoList.Data;
-using TodoList.Data.Persistence;
 using TodoList.Domain.Entities;
 using TodoList.Domain.Enums;
+using TodoList.Infrastructure.Persistence;
 
 namespace TodoList.Console
 {

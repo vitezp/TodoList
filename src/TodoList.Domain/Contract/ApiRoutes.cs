@@ -10,10 +10,9 @@
         {
             public const string Create = Base + "/todo";
             public const string GetAll = Base + "/todo";
-            public const string Update = Base + "/todo/{postId}";
-            public const string Delete = Base + "/todo/{postId}";
-
-            public const string Get = Base + "/todo/{postId}";
+            public const string Update = Base + "/todo";
+            public const string Delete = Base + "/todo/{todoId}";
+            public const string GetById = Base + "/todo/{todoId}";
         }
     }
 }

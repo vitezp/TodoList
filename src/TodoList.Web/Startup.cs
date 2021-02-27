@@ -1,5 +1,6 @@
 using System.Reflection;
 using FluentValidation.AspNetCore;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using TodoList.Application.Interfaces;
 using TodoList.Application.Validators;
-using TodoList.Data.Persistence;
+using TodoList.Infrastructure.Persistence;
 using TodoList.Web.Controllers;
 
 namespace TodoList.Web
@@ -28,6 +29,7 @@ namespace TodoList.Web
         {
             services.AddMvc().AddApplicationPart(typeof(WeatherForecastController).GetTypeInfo().Assembly);
             services.AddControllers();
+            services.AddMediatR(typeof(Application.Commands.CreateTodoCommand));
             services.AddAutoMapper(typeof(Application.Mappers.DomainToResponseProfile));
             services.AddSingleton<ITodoItemRepository, TodoItemRepository>();
             services.AddControllersWithViews().AddFluentValidation(fv =>
@@ -36,12 +38,11 @@ namespace TodoList.Web
             });
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "TodoList.Application2", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = "TodoList.API", Version = "v1"});
             });
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ClientApp/build"; });
         }
-
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -71,16 +72,16 @@ namespace TodoList.Web
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
             });
-            app.UseCors(builder => builder.WithOrigins("http://localhost:3000", "https://localhost:3000"));
-            app.UseSpa(spa =>
-            {
-                spa.Options.SourcePath = "ClientApp";
-
-                if (env.IsDevelopment())
-                {
-                    spa.UseReactDevelopmentServer(npmScript: "start");
-                }
-            });
+            // app.UseCors(builder => builder.WithOrigins("http://localhost:3000", "https://localhost:3000"));
+            // app.UseSpa(spa =>
+            // {
+            //     spa.Options.SourcePath = "ClientApp";
+            //
+            //     if (env.IsDevelopment())
+            //     {
+            //         spa.UseReactDevelopmentServer(npmScript: "start");
+            //     }
+            // });
         }
     }
 }

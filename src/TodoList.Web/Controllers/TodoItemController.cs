@@ -2,15 +2,15 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using TodoList.Application.Commands;
 using TodoList.Application.Interfaces;
 using TodoList.Domain.Contract;
 using TodoList.Domain.Contract.Requests;
 using TodoList.Domain.Contract.Responses;
 using TodoList.Domain.Entities;
-using TodoList.Domain.Enums;
-using TodoList.Domain.Extensions;
 
 namespace TodoList.Web.Controllers
 {
@@ -21,65 +21,45 @@ namespace TodoList.Web.Controllers
         private readonly ILogger<TodoItemController> _logger;
         private readonly ITodoItemRepository _todoItemRepository;
         private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
         public TodoItemController(ILogger<TodoItemController> logger, ITodoItemRepository todoItemRepository,
-            IMapper mapper)
+            IMapper mapper, IMediator mediator)
         {
             _logger = logger;
             _mapper = mapper;
+            _mediator = mediator;
             _todoItemRepository = todoItemRepository;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet(ApiRoutes.Todo.GetById)]
+        [ProducesResponseType(typeof(TodoResponse), 200)]
+        [ProducesResponseType(typeof(ErrorResponse), 404)]
+        public async Task<IActionResult> GetByIdAsync([FromRoute] string todoId)
+        {
+            var query = new GetTodoCommand(todoId);
+            var result = await _mediator.Send(query);
+            if (result == null)
+            {
+                return NotFound($"Unable to get Todo item with id: '{todoId}'");
+            }
+
+            return Ok(result);
+        }
+
         [HttpGet(ApiRoutes.Todo.GetAll)]
-        public async Task<IActionResult> GetAsync()
+        [ProducesResponseType(typeof(List<TodoResponse>), 200)]
+        public async Task<IActionResult> GetAllAsync()
         {
-            var allTodoItems = _todoItemRepository.GetAllTodoItems();
-            return Ok(_mapper.Map<List<TodoResponse>>(allTodoItems));
+            var query = new GetAllTodoCommand();
+            var result = await _mediator.Send(query);
+            return Ok(result);
         }
 
-        [HttpDelete(ApiRoutes.Todo.Delete)]
-        public async Task<IActionResult> Delete([FromRoute] string todoName)
-        {
-            var deleted = _todoItemRepository.DeleteTodoItem(new TodoItem() {Name = todoName});
-
-            if (deleted == 0)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
-        }
-
-        [HttpPost(ApiRoutes.Todo.Update)]
-        [ProducesResponseType(typeof(TodoResponse), 201)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
-        public async Task<IActionResult> Update([FromBody] TodoRequest request)
-        {
-            //TODO use mapper
-            var todoItem = new TodoItem()
-            {
-                Status = request.Status.ParseEnum<Status>(),
-                Name = request.Name,
-                Priority = request.Priority
-            };
-
-            var get = _todoItemRepository.GetAllTodoItems().First(m => m.Name == request.Name);
-            if (get == null)
-            {
-                return BadRequest(new ErrorResponse(new ErrorModel
-                    {Message = "Todo item with given name is not present"}));
-            }
-
-            var rowsAffected = _todoItemRepository.UpdateTodoItem(todoItem);
-            if (rowsAffected == 0)
-            {
-                return BadRequest(new ErrorResponse(new ErrorModel {Message = "Unable to update todo item"}));
-            }
-
-            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
-            var locationUri = baseUrl + "/" + ApiRoutes.Todo.Get.Replace("{tagName}", todoItem.Name);
-            return Created(locationUri, _mapper.Map<TodoResponse>(todoItem));
-        }
 
         /// <summary>
         /// Creates a TodoItem in the system
@@ -87,27 +67,54 @@ namespace TodoList.Web.Controllers
         /// <response code="201">Creates a TodoItem in the system</response>
         /// <response code="400">Unable to create a TodoItem due to a validation error</response>
         [HttpPost(ApiRoutes.Todo.Create)]
-        [ProducesResponseType(typeof(TodoResponse), 201)]
+        [ProducesResponseType(typeof(TodoItem), 201)]
         [ProducesResponseType(typeof(ErrorResponse), 400)]
         public async Task<IActionResult> Create([FromBody] TodoRequest request)
         {
-            //TODO use mapper
-            var todoItem = new TodoItem()
+            var query = new CreateTodoCommand(request);
+            var result = await _mediator.Send(query);
+            if (result == null)
             {
-                Status = request.Status.ParseEnum<Status>(),
-                Name = request.Name,
-                Priority = request.Priority
-            };
-
-            var rowsAffected = _todoItemRepository.InsertTodoItem(todoItem);
-            if (rowsAffected == 0)
-            {
-                return BadRequest(new ErrorResponse(new ErrorModel {Message = "Unable to create todo item"}));
+                return BadRequest($"Unable to create todo item: '{request}'");
             }
 
-            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
-            var locationUri = baseUrl + "/" + ApiRoutes.Todo.Get.Replace("{tagName}", todoItem.Name);
-            return Created(locationUri, _mapper.Map<TodoResponse>(todoItem));
+            return Created(ApiRoutes.Todo.Create, result);
+        }
+
+        /// <summary>
+        /// Delete TodoItem from the system
+        /// </summary>
+        /// <response code="204">Successfully deleted the item</response>
+        /// <response code="404">Unable to delete a TodoItem as it probably does note exist</response>
+        [HttpDelete(ApiRoutes.Todo.Delete)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(typeof(ErrorResponse), 404)]
+        public async Task<IActionResult> Delete([FromRoute] string todoId)
+        {
+            var query = new DeleteTodoCommand(todoId);
+            var result = await _mediator.Send(query);
+            if (!result.Success)
+            {
+                return NotFound(result.ErrorMessage);
+            }
+
+            return NoContent();
+        }
+
+        [HttpPut(ApiRoutes.Todo.Update)]
+        [ProducesResponseType(typeof(TodoResponse), 201)]
+        [ProducesResponseType(typeof(ErrorResponse), 400)]
+        // [ProducesResponseType(typeof(ErrorResponse), 404)]
+        public async Task<IActionResult> Update([FromBody] UpdateTodoRequest request)
+        {
+            var query = new UpdateTodoCommand(request);
+            var result = await _mediator.Send(query);
+            if (result.ErrorResponse != null)
+            {
+                return BadRequest(result.ErrorResponse);
+            }
+
+            return Created(ApiRoutes.Todo.Create, result);
         }
     }
 }

@@ -7,7 +7,7 @@ using TodoList.Application.Interfaces;
 using TodoList.Domain.Entities;
 using TodoList.Domain.Enums;
 
-namespace TodoList.Data.Persistence
+namespace TodoList.Infrastructure.Persistence
 {
     public class TodoItemRepository : IDisposable, ITodoItemRepository
     {
@@ -45,28 +45,14 @@ IsDeleted TINYINT NOT NULL DEFAULT 0);";
             }
 
             _log.LogInformation("Database initialized with table 'TodoItem'");
+            
+            //Dummy seed to some initial data
             InsertTodoItem(new TodoItem()
                 {Name = "Send CV to the Barclays", Priority = 70, Status = Status.Completed});
             InsertTodoItem(new TodoItem()
-                {Name = "Implement the coding taks", Priority = 60, Status = Status.InProgress});
+                {Name = "Implement the coding task", Priority = 60, Status = Status.InProgress});
         }
 
-        public int InsertTodoItem(TodoItem todoItem)
-        {
-            //could be used Insert On Duplicate Update but separating makes sense
-            const string insertItem =
-                @"INSERT INTO TodoItem (Name, Status, Priority) VALUES (@Name, @Status, @Priority)";
-
-            return ExecuteNonQuery(todoItem, insertItem, "Error inserting todoItem");
-        }
-
-        public int UpdateTodoItem(TodoItem todoItem)
-        {
-            const string updateItems =
-                @"UPDATE TodoItem SET Name = @Name, Status = @Status, Priority = @Priority, IsDeleted = @IsDeleted WHERE Id = @Id;";
-
-            return ExecuteNonQuery(todoItem, updateItems, "Error updating todoItem");
-        }
 
         public IEnumerable<TodoItem> GetAllTodoItems()
         {
@@ -89,10 +75,53 @@ IsDeleted TINYINT NOT NULL DEFAULT 0);";
             }
         }
 
-        public int DeleteTodoItem(TodoItem todoItem)
+        public TodoItem GetTodoItemById(int id)
         {
+            const string getItems = @"SELECT * FROM TodoItem WHERE IsDeleted = 0 AND Id = @Id;";
+
+            using var cmd = new SqliteCommand(getItems, _connection);
+            cmd.Parameters.AddWithValue("@Id", id);
+
+            return ExecuteReader(cmd);
+        }
+
+        public TodoItem GetTodoItemByName(string name)
+        {
+            const string getItems = @"SELECT * FROM TodoItem WHERE IsDeleted = 0 AND Name = @Name;";
+
+            using var cmd = new SqliteCommand(getItems, _connection);
+            cmd.Parameters.AddWithValue("@Name", name);
+
+            return ExecuteReader(cmd);
+        }
+
+        public bool InsertTodoItem(TodoItem todoItem)
+        {
+            //could be used Insert On Duplicate Update but separating makes sense
+            const string insertItem =
+                @"INSERT INTO TodoItem (Name, Status, Priority) VALUES (@Name, @Status, @Priority)";
+
+            _log.LogInformation($"Inserting Todo item:'{todoItem}'");
+            return ExecuteNonQuery(todoItem, insertItem, $"Error inserting todoItem: '{todoItem}'") > 0;
+        }
+
+        public bool UpdateTodoItem(TodoItem todoItem)
+        {
+            const string updateItems =
+                @"UPDATE TodoItem SET Name = @Name, Status = @Status, Priority = @Priority, IsDeleted = @IsDeleted WHERE Id = @Id;";
+
+            _log.LogInformation($"Updating Todo item:'{todoItem}'");
+            return ExecuteNonQuery(todoItem, updateItems, "Error updating todoItem: '{todoItem}") > 0;
+        }
+
+        public bool DeleteTodoItem(TodoItem todoItem)
+        {
+            const string deleteItems =
+                @"UPDATE TodoItem SET IsDeleted = @IsDeleted WHERE Id = @Id;";
+
             todoItem.IsDeleted = true;
-            return UpdateTodoItem(todoItem);
+            _log.LogInformation($"Deleting Todo item with id:'{todoItem.Id}'");
+            return ExecuteNonQuery(todoItem, deleteItems, $"Error deleting todoItem with id: '{todoItem.Id}'") > 0;
         }
 
         public void Dispose()
@@ -107,17 +136,51 @@ IsDeleted TINYINT NOT NULL DEFAULT 0);";
             cmd.Parameters.AddWithValue("@Name", todoItem.Name);
             cmd.Parameters.AddWithValue("@Status", todoItem.Status);
             cmd.Parameters.AddWithValue("@Priority", todoItem.Priority);
-            // Id for Update IsDeleted for Delete
+            // Id to update IsDeleted for Delete request
             cmd.Parameters.AddWithValue("@Id", todoItem.Id);
             cmd.Parameters.AddWithValue("@IsDeleted", todoItem.IsDeleted);
             try
             {
+                _log.LogDebug($"Executing non query: '{cmd.CommandText}'");
                 return cmd.ExecuteNonQuery();
             }
             catch (Exception e)
             {
-                _log.LogError(errorMessage, e);
+                _log.LogError(e, errorMessage);
                 return 0;
+            }
+        }
+
+        private TodoItem ExecuteReader(SqliteCommand cmd)
+        {
+            using var reader = cmd.ExecuteReader();
+
+            try
+            {
+                reader.Read();
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, $"Exception occured when executing query: '{cmd.CommandText}'");
+                return null;
+            }
+
+            if (!reader.HasRows)
+            {
+                _log.LogError($"Unable to find todo item with query: '{cmd.CommandText}'");
+                return null;
+            }
+
+            var item = new TodoItem()
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                StatusString = reader.GetString(2),
+                Priority = reader.GetInt32(3)
+            };
+            _log.LogInformation($"Reading todoItem: '{item}'");
+            {
+                return item;
             }
         }
     }

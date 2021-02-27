@@ -4,16 +4,11 @@ namespace TodoList.Domain.Contract.Responses
 {
     public class ErrorResponse
     {
-        public ErrorResponse(ErrorModel error)
+        public ErrorResponse(string error)
         {
             Errors.Add(error);
         }
 
-        public List<ErrorModel> Errors { get; set; } = new List<ErrorModel>();
-    }
-
-    public class ErrorModel
-    {
-        public string Message { get; set; }
+        public List<string> Errors { get; } = new List<string>();
     }
 }

@@ -1,7 +1,7 @@
 using System.Data;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using TodoList.Data.Persistence;
+using TodoList.Infrastructure.Persistence;
 using Xunit;
 
 namespace TodoList.Infrastructure.UnitTests
@@ -13,7 +13,7 @@ namespace TodoList.Infrastructure.UnitTests
         public TodoItemRepositoryTests()
         {
             //We could replace the instantiation with any implementation of ITodoItemRepository, tests should still pass
-            //ass they are decoupled from the Infrastructure
+            //as they are decoupled from the Infrastructure
             _sut = new TodoItemRepository(new NullLogger<TodoItemRepository>());
         }
         
@@ -24,5 +24,7 @@ namespace TodoList.Infrastructure.UnitTests
             _sut.Dispose();
             _sut.GetConnectionState().Should().Be(ConnectionState.Closed);
         }
+        
+        
     }
 }

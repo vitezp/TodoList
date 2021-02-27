@@ -13,7 +13,6 @@ namespace TodoList.Application.Mappers
             CreateMap<TodoResponse, TodoItem>()
                 .ForMember(dest => dest.Status,
                     opt => opt.MapFrom(src => src.Status.ParseEnum<Status>()));
-            ;
         }
     }
 }

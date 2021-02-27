@@ -5,9 +5,11 @@ namespace TodoList.Application.Interfaces
 {
     public interface ITodoItemRepository
     {
-        int InsertTodoItem(TodoItem todoItem);
+        bool InsertTodoItem(TodoItem todoItem);
+        TodoItem GetTodoItemById(int id);
+        TodoItem GetTodoItemByName(string name);
         IEnumerable<TodoItem> GetAllTodoItems();
-        int UpdateTodoItem(TodoItem todoItem);
-        int DeleteTodoItem(TodoItem todoItem);
+        bool UpdateTodoItem(TodoItem todoItem);
+        bool DeleteTodoItem(TodoItem todoItem);
     }
 }
