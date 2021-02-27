@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TodoList.Domain\TodoList.Domain.csproj" />
+      <ProjectReference Include="..\TodoList.Infrastructure\TodoList.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup> 
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" /> 
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" /> 
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" /> 
+      <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" /> 
+    </ItemGroup> 
+    
+</Project>
