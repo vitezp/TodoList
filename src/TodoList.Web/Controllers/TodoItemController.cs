@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using MediatR;
@@ -73,9 +72,9 @@ namespace TodoList.Web.Controllers
         {
             var query = new CreateTodoCommand(request);
             var result = await _mediator.Send(query);
-            if (result == null)
+            if (result.ErrorResponse != null)
             {
-                return BadRequest($"Unable to create todo item: '{request}'");
+                return BadRequest(result.ErrorResponse);
             }
 
             return Created(ApiRoutes.Todo.Create, result);

@@ -31,6 +31,14 @@ namespace TodoList.Application.Handlers
         {
             var todoItem = _mapper.Map<TodoItem>(request.TodoRequest);
 
+            var itemAlreadyExists = _todoItemRepository.GetTodoItemByName(todoItem.Name);
+            if (itemAlreadyExists != null)
+            {
+                var error = $"Todo item '{request.TodoRequest.Name}' already exists";
+                _logger.LogInformation(error);
+                return new TodoResponse {ErrorResponse = new ErrorResponse(error)}; 
+            }
+
             //TODO await
             var success = _todoItemRepository.InsertTodoItem(todoItem);
             if (!success)

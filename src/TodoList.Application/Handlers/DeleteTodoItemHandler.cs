@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TodoList.Application.Commands;
 using TodoList.Application.Interfaces;

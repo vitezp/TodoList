@@ -1,6 +1,5 @@
 ﻿using System.Threading;
 using AutoMapper;
-using Castle.Core.Internal;
 using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;

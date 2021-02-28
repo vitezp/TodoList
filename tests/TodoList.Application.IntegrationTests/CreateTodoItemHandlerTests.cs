@@ -1,11 +1,11 @@
 ﻿using System.Threading;
 using AutoMapper;
-using Castle.Core.Internal;
 using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.Core;
+using NSubstitute.ReturnsExtensions;
 using TodoList.Application.Commands;
 using TodoList.Application.Handlers;
 using TodoList.Application.Interfaces;
@@ -40,13 +40,16 @@ namespace TodoList.Application.IntegrationTests
             // Arrange
             var todo = new TodoItem {Id = id, Name = name, Priority = priority, Status = status};
             TodoItem receivedArgs = null;
+            _todoItemRepo.GetTodoItemByName(Arg.Is<string>(m=>m==todo.Name))
+                .ReturnsNull();
             _todoItemRepo.InsertTodoItem(
                     Arg.Do<TodoItem>(x => receivedArgs = x))
                 .Returns(true);
 
             // Act
             var res = await _sut.Handle(
-                new CreateTodoCommand(new TodoRequest {Name = name, Status = status.ToString(), Priority = priority.ToString()}),
+                new CreateTodoCommand(new TodoRequest
+                    {Name = name, Status = status.ToString(), Priority = priority.ToString()}),
                 CancellationToken.None);
 
             // Assert
@@ -66,16 +69,37 @@ namespace TodoList.Application.IntegrationTests
         public async void CreateTodoItemHandler(string id, string name, Status status, int priority)
         {
             // Arrange
+            _todoItemRepo.GetTodoItemByName(Arg.Any<string>())
+                .ReturnsNull();
             _todoItemRepo.InsertTodoItem(Arg.Any<TodoItem>())
                 .Returns(false);
 
             // Act
             var res = await _sut.Handle(
-                new CreateTodoCommand(new TodoRequest {Name = name, Status = status.ToString(), Priority = priority.ToString()}),
+                new CreateTodoCommand(new TodoRequest
+                    {Name = name, Status = status.ToString(), Priority = priority.ToString()}),
                 CancellationToken.None);
 
             // Assert
             res.ErrorResponse.Errors.Should().Contain($"Unable to create item with name: '{name}'");
+        }
+
+        [Theory]
+        [InlineData("Name", Status.Completed, 2)]
+        public async void CreateTodoItemHandler_ShouldNotCreateItem_WhenItemAlreadyExists(string name, Status status, int priority)
+        {
+            // Arrange
+            _todoItemRepo.GetTodoItemByName(Arg.Any<string>())
+                .Returns(new TodoItem());
+
+            // Act
+            var res = await _sut.Handle(
+                new CreateTodoCommand(new TodoRequest
+                    {Name = name, Status = status.ToString(), Priority = priority.ToString()}),
+                CancellationToken.None);
+
+            // Assert
+            res.ErrorResponse.Errors.Should().Contain($"Todo item '{name}' already exists");
         }
     }
 }
