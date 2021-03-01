@@ -41,7 +41,7 @@ namespace TodoList.Web
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "TodoList.API", Version = "v1"});
             });
             // In production, the React files will be served from this directory
-            services.AddSpaStaticFiles(configuration => { configuration.RootPath = "todo-client/build"; });
+            services.AddSpaStaticFiles(configuration => { configuration.RootPath = "client/build"; });
         }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -75,7 +75,7 @@ namespace TodoList.Web
             app.UseCors(builder => builder.WithOrigins("http://localhost:3000", "https://localhost:3000"));
             app.UseSpa(spa =>
             {
-                spa.Options.SourcePath = "todo-client";
+                spa.Options.SourcePath = "client";
             
                 if (env.IsDevelopment())
                 {

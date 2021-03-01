@@ -30,17 +30,18 @@ namespace TodoList.Application.IntegrationTests
         }
 
         [Theory]
-        [InlineData(1324513, "Name", Status.Completed, 2)]
-        [InlineData(50, "Item Name", Status.InProgress, 10)]
-        [InlineData(50, "Item Name", Status.NotStarted, 99)]
-        [InlineData(1, "Item Name")]
-        public async void CreateTodoItemHandler_ShouldCreateTodoItem_WhenAllParametersAreValid(int id, string name,
-            Status status = default, int priority = 0)
+        [InlineData("1324513", "Name", Status.Completed, "2")]
+        [InlineData("50", "Item Name", Status.InProgress, "10")]
+        [InlineData("50", "Item Name", Status.NotStarted, "99")]
+        [InlineData("50", "Item Name", Status.NotStarted)]
+        [InlineData("1", "Item Name")]
+        public async void CreateTodoItemHandler_ShouldCreateTodoItem_WhenAllParametersAreValid(string id, string name,
+            Status status = default, string priority = "0")
         {
             // Arrange
-            var todo = new TodoItem {Id = id, Name = name, Priority = priority, Status = status};
+            var todo = new TodoItem {Id = int.Parse(id), Name = name, Priority = int.Parse(priority), Status = status};
             TodoItem receivedArgs = null;
-            _todoItemRepo.GetTodoItemByName(Arg.Is<string>(m=>m==todo.Name))
+            _todoItemRepo.GetTodoItemByName(Arg.Is<string>(m => m == todo.Name))
                 .ReturnsNull();
             _todoItemRepo.InsertTodoItem(
                     Arg.Do<TodoItem>(x => receivedArgs = x))
@@ -49,7 +50,7 @@ namespace TodoList.Application.IntegrationTests
             // Act
             var res = await _sut.Handle(
                 new CreateTodoCommand(new TodoRequest
-                    {Name = name, Status = status.ToString(), Priority = priority.ToString()}),
+                    {Name = name, Status = status.ToString(), Priority = priority}),
                 CancellationToken.None);
 
             // Assert
@@ -65,8 +66,8 @@ namespace TodoList.Application.IntegrationTests
         }
 
         [Theory]
-        [InlineData("asdf", "Name", Status.Completed, 2)]
-        public async void CreateTodoItemHandler(string id, string name, Status status, int priority)
+        [InlineData("Name", Status.Completed, 2)]
+        public async void CreateTodoItemHandler_ShouldNotCreate(string name, Status status, int priority)
         {
             // Arrange
             _todoItemRepo.GetTodoItemByName(Arg.Any<string>())
@@ -85,8 +86,38 @@ namespace TodoList.Application.IntegrationTests
         }
 
         [Theory]
+        [InlineData("ComPleTed", "2")]
+        [InlineData("nOtStarteD", "93")]
+        [InlineData("inProgResS")]
+        [InlineData("", "21")]
+        [InlineData("", "")]
+        [InlineData]
+        public async void CreateTodoItemHandler_ShouldCreate_WhenValuesAreEmpty(string status = null,
+            string priority = null)
+        {
+            // Arrange
+            _todoItemRepo.GetTodoItemByName(Arg.Any<string>())
+                .ReturnsNull();
+            _todoItemRepo.InsertTodoItem(Arg.Any<TodoItem>())
+                .Returns(true);
+
+            var todoRequest = new TodoRequest
+                {Name = "name", Status = status, Priority = priority};
+            
+            // Act
+            var res = await _sut.Handle(
+                new CreateTodoCommand(todoRequest),
+                CancellationToken.None);
+
+            // Assert
+            res.ErrorResponse.Should().BeNull();
+        }
+
+
+        [Theory]
         [InlineData("Name", Status.Completed, 2)]
-        public async void CreateTodoItemHandler_ShouldNotCreateItem_WhenItemAlreadyExists(string name, Status status, int priority)
+        public async void CreateTodoItemHandler_ShouldNotCreateItem_WhenItemAlreadyExists(string name, Status status,
+            int priority)
         {
             // Arrange
             _todoItemRepo.GetTodoItemByName(Arg.Any<string>())

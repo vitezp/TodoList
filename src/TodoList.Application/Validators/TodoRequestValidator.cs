@@ -14,9 +14,15 @@ namespace TodoList.Application.Validators
         public TodoRequestValidator()
         {
             RuleFor(x => x.Status)
-                .IsEnumName(typeof(Status), false)
-                .WithMessage(
-                    $"Todo item field 'status' must be one of '{string.Join(", ", Enum.GetValues<Status>())}'");
+                .Custom((x, context) =>
+                {
+                    if (!string.IsNullOrEmpty(x) && Enum.GetValues<Status>().All(m =>
+                        !m.ToString().Equals(x, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        context.AddFailure(
+                            $"Todo item field 'status' must be empty or one of '{string.Join(", ", Enum.GetValues<Status>())}'");
+                    }
+                });
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Todo item field 'name' cannot be empty");
@@ -24,7 +30,7 @@ namespace TodoList.Application.Validators
             RuleFor(x => x.Priority)
                 .Custom((x, context) =>
                 {
-                    if (!int.TryParse(x, out var value) || value < 0 || value > 100)
+                    if (!string.IsNullOrWhiteSpace(x) && (!int.TryParse(x, out var value) || value < 0 || value > 100))
                     {
                         context.AddFailure($"'{x}' is not a valid number or not within range <0,100>");
                     }

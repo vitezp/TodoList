@@ -50,7 +50,7 @@ namespace TodoList.Application.UnitTests
             Status status)
         {
             // Arrange
-            var item = new TodoItem() {Name = name, Priority = priority, Status = status};
+            var item = new TodoItem {Name = name, Priority = priority, Status = status};
 
             // Act
             var success = _sut.InsertTodoItem(item);
@@ -63,22 +63,40 @@ namespace TodoList.Application.UnitTests
 
         [Theory]
         [InlineData("Task Name", 10, Status.InProgress)]
-        public void InsertItem_ShouldNotCreateItem_WhenItemWithTheSameNameExists(string name, int priority,
+        public void ReInsertItem_ShouldCreateItem_WhenItWasOnceDeleted(string name, int priority,
             Status status)
         {
             // Arrange
-            var item = new TodoItem {Name = name, Priority = priority, Status = status};
+            var item = new TodoItem() {Name = name, Priority = priority, Status = status};
+            var success = _sut.InsertTodoItem(item);
+            item.Id = _sut.GetTodoItemByName(item.Name).Id;
+            success &= _sut.DeleteTodoItem(item);
+            
+            // Act
+            success &= _sut.InsertTodoItem(item);
+            var created = _sut.GetTodoItemById(item.Id+1);
 
+            // Assert
+            success.Should().BeTrue();
+            created.Should().BeEquivalentTo(item, options =>
+                options.Excluding(o => o.Id));
+        }
+
+        [Theory]
+        [InlineData("Task Name", 10, Status.InProgress)]
+        public void InsertItem_ShouldNotCreateItem_WhenTheSameExistsDifferentCase(string name, int priority,
+            Status status)
+        {
+            // Arrange
+            var item = new TodoItem() {Name = name, Priority = priority, Status = status};
+            _sut.InsertTodoItem(item);
+            item.Name = item.Name.ToUpper();
+            
             // Act
             var success = _sut.InsertTodoItem(item);
 
             // Assert
-            success.Should().BeTrue();
-            success = _sut.InsertTodoItem(item);
             success.Should().BeFalse();
-
-            var createdCount = _sut.GetAllTodoItems().Count();
-            createdCount.Should().Be(3);
         }
 
         [Theory]

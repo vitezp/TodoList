@@ -109,10 +109,10 @@ const Todo = () => {
                     return <li key={todoItem.id} id={todoItem.id}><TodoItem name={todoItem.name}
                                                                             status={todoItem.status}
                                                                             priority={todoItem.priority}/>
-                        <button type="button" onClick={() => handleDelete(todoItem)}>
+                        <button className="btn" type="button" onClick={() => handleDelete(todoItem)}>
                             Remove
                         </button>
-                        <button type="button" onClick={() => handleUpdate(todoItem)}>
+                        <button className="btn" type="button" onClick={() => handleUpdate(todoItem)}>
                             Edit
                         </button>
                     </li>
@@ -129,7 +129,7 @@ const Todo = () => {
                     </select>
                     <input type="text" name="priority" value={todo.priority} onChange={onChangeHandler}></input>
 
-                    <button type="submit">Add Todo</button>
+                    <button className="btn" type="submit">Add Todo</button>
                 </form>
             </div>
 

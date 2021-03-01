@@ -25,8 +25,6 @@ namespace TodoList.Domain.Entities
 
         public int Priority { get; init; }
 
-        public bool IsDeleted { get; set; }
-
         public override string ToString()
         {
             return $"Todo Item: {Environment.NewLine} Id:'{Id}', Name:'{Name}', Status:'{Status}', Priority:'{Priority}'";

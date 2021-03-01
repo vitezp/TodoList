@@ -32,10 +32,9 @@ namespace TodoList.Infrastructure.Persistence
         {
             const string createItem = @"CREATE TABLE IF NOT EXISTS TodoItem (
 ID INTEGER PRIMARY KEY AUTOINCREMENT, 
-Name TEXT NOT NULL UNIQUE, 
-Status TEXT NOT NULL, 
-Priority INTEGER NOT NULL CHECK (Priority >= 0 AND Priority <= 100), 
-IsDeleted TINYINT NOT NULL DEFAULT 0);";
+Name TEXT NOT NULL UNIQUE COLLATE NOCASE, 
+Status TEXT, 
+Priority INTEGER DEFAULT 0 CHECK (Priority >= 0 AND Priority <= 100));";
 
             using var cmd = new SqliteCommand(createItem, _connection);
 
@@ -56,7 +55,7 @@ IsDeleted TINYINT NOT NULL DEFAULT 0);";
 
         public IEnumerable<TodoItem> GetAllTodoItems()
         {
-            const string getItems = @"SELECT * FROM TodoItem WHERE IsDeleted = 0;";
+            const string getItems = @"SELECT * FROM TodoItem;";
 
             using var cmd = new SqliteCommand(getItems, _connection);
             using var reader = cmd.ExecuteReader();
@@ -77,7 +76,7 @@ IsDeleted TINYINT NOT NULL DEFAULT 0);";
 
         public TodoItem GetTodoItemById(int id)
         {
-            const string getItems = @"SELECT * FROM TodoItem WHERE IsDeleted = 0 AND Id = @Id;";
+            const string getItems = @"SELECT * FROM TodoItem WHERE Id = @Id;";
 
             using var cmd = new SqliteCommand(getItems, _connection);
             cmd.Parameters.AddWithValue("@Id", id);
@@ -87,7 +86,7 @@ IsDeleted TINYINT NOT NULL DEFAULT 0);";
 
         public TodoItem GetTodoItemByName(string name)
         {
-            const string getItems = @"SELECT * FROM TodoItem WHERE IsDeleted = 0 AND Name = @Name;";
+            const string getItems = @"SELECT * FROM TodoItem WHERE Name = @Name COLLATE NOCASE;";
 
             using var cmd = new SqliteCommand(getItems, _connection);
             cmd.Parameters.AddWithValue("@Name", name);
@@ -108,7 +107,7 @@ IsDeleted TINYINT NOT NULL DEFAULT 0);";
         public bool UpdateTodoItem(TodoItem todoItem)
         {
             const string updateItems =
-                @"UPDATE TodoItem SET Name = @Name, Status = @Status, Priority = @Priority, IsDeleted = @IsDeleted WHERE Id = @Id;";
+                @"UPDATE TodoItem SET Name = @Name, Status = @Status, Priority = @Priority WHERE Id = @Id;";
 
             _log.LogInformation($"Updating Todo item:'{todoItem}'");
             return ExecuteNonQuery(todoItem, updateItems, "Error updating todoItem: '{todoItem}") > 0;
@@ -117,9 +116,8 @@ IsDeleted TINYINT NOT NULL DEFAULT 0);";
         public bool DeleteTodoItem(TodoItem todoItem)
         {
             const string deleteItems =
-                @"UPDATE TodoItem SET IsDeleted = @IsDeleted WHERE Id = @Id;";
+                @"DELETE FROM TodoItem WHERE Id = @Id;";
 
-            todoItem.IsDeleted = true;
             _log.LogInformation($"Deleting Todo item with id:'{todoItem.Id}'");
             return ExecuteNonQuery(todoItem, deleteItems, $"Error deleting todoItem with id: '{todoItem.Id}'") > 0;
         }
@@ -138,7 +136,6 @@ IsDeleted TINYINT NOT NULL DEFAULT 0);";
             cmd.Parameters.AddWithValue("@Priority", todoItem.Priority);
             // Id to update IsDeleted for Delete request
             cmd.Parameters.AddWithValue("@Id", todoItem.Id);
-            cmd.Parameters.AddWithValue("@IsDeleted", todoItem.IsDeleted);
             try
             {
                 _log.LogDebug($"Executing non query: '{cmd.CommandText}'");

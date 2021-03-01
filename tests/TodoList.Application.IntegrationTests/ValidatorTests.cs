@@ -30,13 +30,32 @@ namespace TodoList.Application.IntegrationTests
             // Assert
             validationResult.IsValid.Should().BeTrue();
         }
+        
+        [Theory]
+        [InlineData("Item Name", "InProgReSs", "0")]
+        [InlineData("Item Name", "CoMplEteD")]
+        [InlineData("Item Name", "", "12")]
+        [InlineData("a")]
+        public async Task TodoRequestValidator_ShouldPass_WhenInputsAreEmpty(string name, string status = null,
+            string priority = null)
+        {
+            // Arrange
+            var validator = new TodoRequestValidator();
+            var cmd = new TodoRequest {Name = name, Status = status, Priority = priority};
+
+            // Act
+            var validationResult = await validator.ValidateAsync(cmd);
+
+            // Assert
+            validationResult.IsValid.Should().BeTrue();
+        }
+        
 
         [Theory]
         [InlineData("Todo item field 'name' cannot be empty",            "")]
         [InlineData("is not a valid number or not within range <0,100>", "valid", "101")]
         [InlineData("is not a valid number or not within range <0,100>", "valid", "-1")]
-        [InlineData("is not a valid number or not within range <0,100>", "valid", "")]
-        [InlineData("Todo item field 'status' must be one of ",           "valid", "15", "invalidStatus")]
+        [InlineData("Todo item field 'status' must be empty or one of ",           "valid", "15", "invalidStatus")]
         public async Task TodoRequestValidator_ShouldFail_WhenInputsAreInvalid(string err, string name,
             string priority = "0", string status = "InProgress")
         {
@@ -57,8 +76,7 @@ namespace TodoList.Application.IntegrationTests
         [InlineData("Todo item field 'name' cannot be empty", "1", "")]
         [InlineData("is not a valid number or not within range <0,100>", "1", "valid", "101")]
         [InlineData("is not a valid number or not within range <0,100>", "1","valid", "-1")]
-        [InlineData("is not a valid number or not within range <0,100>", "1","valid", "")]
-        [InlineData("Todo item field 'status' must be one of ", "1","valid", "15", "invalidStatus")]
+        [InlineData("Todo item field 'status' must be empty or one of ", "1","valid", "15", "invalidStatus")]
         [InlineData("is not a valid id or it's lower than 1", "0","valid", "15")]
         [InlineData("is not a valid id or it's lower than 1", "-1","valid", "15")]
         public async Task UpdateTodoRequestValidator_ShouldFail_WhenInputsAreInvalid(string err, string id, string name,
