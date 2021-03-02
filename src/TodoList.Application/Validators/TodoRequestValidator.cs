@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentValidation;
-using TodoList.Application.Interfaces;
 using TodoList.Domain.Contract.Requests;
 using TodoList.Domain.Enums;
 
 namespace TodoList.Application.Validators
 {
+    /// <summary>
+    /// Fluent validation that is invoked once the requests are received on the API. 
+    /// </summary>
     public class TodoRequestValidator : AbstractValidator<TodoRequest>
     {
         public TodoRequestValidator()

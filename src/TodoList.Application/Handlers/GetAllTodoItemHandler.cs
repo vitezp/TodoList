@@ -28,11 +28,10 @@ namespace TodoList.Application.Handlers
         public async Task<IEnumerable<TodoResponse>> Handle(GetAllTodoCommand request,
             CancellationToken cancellationToken)
         {
-            //TODO await
-            var selectedTodoItems = _todoItemRepository.GetAllTodoItems();
+            var selectedTodoItems = await _todoItemRepository.GetAllTodoItems().ConfigureAwait(false);
 
             _logger.LogInformation($"Got: '{selectedTodoItems.Count()} items from the system'");
-            return _mapper.Map<List<TodoResponse>>(selectedTodoItems);
+            return _mapper.Map<List<TodoResponse>>(selectedTodoItems.OrderByDescending(m=>m.Priority));
         }
     }
 }

@@ -30,8 +30,7 @@ namespace TodoList.Application.Handlers
         {
             var todoItem = _mapper.Map<TodoItem>(request.TodoRequest);
 
-            //TODO await
-            var got = _todoItemRepository.GetTodoItemById(todoItem.Id);
+            var got = await _todoItemRepository.GetTodoItemById(todoItem.Id).ConfigureAwait(false);
             if (got == null)
             {
                 var err = $"Todo item with id: '{todoItem.Id} not found'";
@@ -41,8 +40,7 @@ namespace TodoList.Application.Handlers
 
             _logger.LogInformation($"Got todo item for id '{todoItem.Id}'");
 
-            //TODO await
-            var success = _todoItemRepository.UpdateTodoItem(todoItem);
+            var success = await _todoItemRepository.UpdateTodoItem(todoItem).ConfigureAwait(false);
             if (!success)
             {
                 var err = $"Failed when updating todo item '{todoItem}'";

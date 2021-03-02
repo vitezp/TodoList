@@ -36,8 +36,7 @@ namespace TodoList.Application.Handlers
                 return new DeletedTodoResponse(error);
             }
 
-            //TODO await
-            var success = _todoItemRepository.DeleteTodoItem(new TodoItem {Id = todoId});
+            var success = await _todoItemRepository.DeleteTodoItem(new TodoItem {Id = todoId}).ConfigureAwait(false);
 
             _logger.LogInformation($"Deleted item with name: '{request.TodoId}'");
             return new DeletedTodoResponse(success);

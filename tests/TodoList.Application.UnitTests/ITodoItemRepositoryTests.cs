@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using TodoList.Application.Interfaces;
@@ -25,15 +26,15 @@ namespace TodoList.Application.UnitTests
         [InlineData("Task Name éíáýžťčšľ", 50, Status.Completed)]
         [InlineData("Test Name", 0, Status.NotStarted)]
         [InlineData("Test Name", 99, null)]
-        public void InsertItem_ShouldCreateItem_WhenAllParametersAreValid(string name, int priority,
+        public async Task InsertItem_ShouldCreateItem_WhenAllParametersAreValid(string name, int priority,
             Status status)
         {
             // Arrange
             var item = new TodoItem() {Name = name, Priority = priority, Status = status};
 
             // Act
-            var success = _sut.InsertTodoItem(item);
-            var created = _sut.GetAllTodoItems();
+            var success = await _sut.InsertTodoItem(item);
+            var created = await _sut.GetAllTodoItems();
             var first = created.First(m => m.Name == item.Name);
 
             // Assert
@@ -46,35 +47,37 @@ namespace TodoList.Application.UnitTests
         [InlineData(null, 10, Status.InProgress)]
         [InlineData("Test Name", -10, Status.InProgress)]
         [InlineData("Test Name", 110, Status.InProgress)]
-        public void InsertItem_ShouldNotCreateItem_WhenParametersAreInvalid(string name, int priority,
+        public async Task InsertItem_ShouldNotCreateItem_WhenParametersAreInvalid(string name, int priority,
             Status status)
         {
             // Arrange
             var item = new TodoItem {Name = name, Priority = priority, Status = status};
 
             // Act
-            var success = _sut.InsertTodoItem(item);
+            var success = await _sut.InsertTodoItem(item);
 
             // Assert
             success.Should().BeFalse();
-            var createdCount = _sut.GetAllTodoItems().Count();
+            var items = await _sut.GetAllTodoItems();
+            var createdCount = items.Count();
             createdCount.Should().Be(2);
         }
 
         [Theory]
         [InlineData("Task Name", 10, Status.InProgress)]
-        public void ReInsertItem_ShouldCreateItem_WhenItWasOnceDeleted(string name, int priority,
+        public async Task ReInsertItem_ShouldCreateItem_WhenItWasOnceDeleted(string name, int priority,
             Status status)
         {
             // Arrange
             var item = new TodoItem() {Name = name, Priority = priority, Status = status};
-            var success = _sut.InsertTodoItem(item);
-            item.Id = _sut.GetTodoItemByName(item.Name).Id;
-            success &= _sut.DeleteTodoItem(item);
-            
+            var success = await _sut.InsertTodoItem(item);
+            var todoItem = await _sut.GetTodoItemByName(item.Name);
+            item.Id = todoItem.Id;
+            success &= await _sut.DeleteTodoItem(item);
+
             // Act
-            success &= _sut.InsertTodoItem(item);
-            var created = _sut.GetTodoItemById(item.Id+1);
+            success &= await _sut.InsertTodoItem(item);
+            var created = await _sut.GetTodoItemById(item.Id + 1);
 
             // Assert
             success.Should().BeTrue();
@@ -84,16 +87,16 @@ namespace TodoList.Application.UnitTests
 
         [Theory]
         [InlineData("Task Name", 10, Status.InProgress)]
-        public void InsertItem_ShouldNotCreateItem_WhenTheSameExistsDifferentCase(string name, int priority,
+        public async Task InsertItem_ShouldNotCreateItem_WhenTheSameExistsDifferentCase(string name, int priority,
             Status status)
         {
             // Arrange
             var item = new TodoItem() {Name = name, Priority = priority, Status = status};
-            _sut.InsertTodoItem(item);
+            await _sut.InsertTodoItem(item);
             item.Name = item.Name.ToUpper();
-            
+
             // Act
-            var success = _sut.InsertTodoItem(item);
+            var success = await _sut.InsertTodoItem(item);
 
             // Assert
             success.Should().BeFalse();
@@ -104,20 +107,21 @@ namespace TodoList.Application.UnitTests
         [InlineData("Task Name éíáýžťčšľ", 50, Status.Completed)]
         [InlineData("Test Name", 0, Status.NotStarted)]
         [InlineData("Test Name", 99)]
-        public void UpdateItem_ShouldUpdateItem_WhenAllParametersAreValid(string name, int priority,
+        public async Task UpdateItem_ShouldUpdateItem_WhenAllParametersAreValid(string name, int priority,
             Status status = default)
         {
             // Arrange
             var origin = new TodoItem {Name = "TodoTask"};
-            _sut.InsertTodoItem(origin);
-            origin.Id = _sut.GetAllTodoItems().First(m => m.Name == origin.Name).Id;
+            await _sut.InsertTodoItem(origin);
+            var itemByName = await _sut.GetTodoItemByName(origin.Name);
+            origin.Id = itemByName.Id;
             var item = new TodoItem {Id = origin.Id, Name = name, Priority = priority, Status = status};
 
             // Act
-            var success = _sut.UpdateTodoItem(item);
+            var success = await _sut.UpdateTodoItem(item);
 
             // Assert
-            var created = _sut.GetAllTodoItems();
+            var created = await _sut.GetAllTodoItems();
             var selected = created.First(m => m.Name == item.Name);
             success.Should().BeTrue();
             selected.Should().BeEquivalentTo(item);
@@ -127,74 +131,78 @@ namespace TodoList.Application.UnitTests
         [InlineData(null, 10, Status.InProgress)]
         [InlineData("Test Name", -10, Status.InProgress)]
         [InlineData("Test Name", 110, Status.InProgress)]
-        public void UpdateItem_ShouldNotUpdateItem_WhenParametersAreInvalid(string name, int priority,
+        public async Task UpdateItem_ShouldNotUpdateItem_WhenParametersAreInvalid(string name, int priority,
             Status status)
         {
             // Arrange
             var origin = new TodoItem {Name = "TodoTask"};
-            _sut.InsertTodoItem(origin);
-            origin.Id = _sut.GetAllTodoItems().First(m => m.Name == origin.Name).Id;
+            await _sut.InsertTodoItem(origin);
+            var itemByName = await _sut.GetTodoItemByName(origin.Name);
+            origin.Id = itemByName.Id;
             var item = new TodoItem {Id = origin.Id, Name = name, Priority = priority, Status = status};
 
             // Act
-            var success = _sut.UpdateTodoItem(item);
+            var success = await _sut.UpdateTodoItem(item);
 
             // Assert
             success.Should().BeFalse();
-            var createdCount = _sut.GetAllTodoItems();
+            var createdCount = await _sut.GetAllTodoItems();
             createdCount.First(m => m.Name == origin.Name).Should().BeEquivalentTo(origin);
         }
 
         [Theory]
         [InlineData(2, "Task Name", 10, Status.InProgress)]
-        public void UpdateItem_ShouldNotUpdateItem_WhenItemWithTheSameNameExists(int id, string name, int priority,
+        public async Task UpdateItem_ShouldNotUpdateItem_WhenItemWithTheSameNameExists(int id, string name,
+            int priority,
             Status status)
         {
             // Arrange
-            _sut.InsertTodoItem(new TodoItem {Name = "Task Exists"});
+            await _sut.InsertTodoItem(new TodoItem {Name = "Task Exists"});
             var item = new TodoItem {Id = id, Name = name, Priority = priority, Status = status};
-            var success = _sut.InsertTodoItem(item);
+            var success = await _sut.InsertTodoItem(item);
             success.Should().BeTrue();
             item.Name = "Task Exists";
 
             // Act
-            success = _sut.UpdateTodoItem(item);
+            success = await _sut.UpdateTodoItem(item);
 
             // Assert
             success.Should().BeFalse();
         }
 
         [Fact]
-        public void DeleteItem_ShouldDeleteItem_WhenTheSpecifiedItemExists()
+        public async Task DeleteItem_ShouldDeleteItem_WhenTheSpecifiedItemExists()
         {
             // Arrange
             var origin = new TodoItem {Name = "TodoTask"};
-            _sut.InsertTodoItem(origin);
-            origin.Id = _sut.GetAllTodoItems().First(m => m.Name == origin.Name).Id;
+            await _sut.InsertTodoItem(origin);
+            var itemByName = await _sut.GetTodoItemByName(origin.Name);
+            origin.Id = itemByName.Id;
 
             // Act
-            var success = _sut.DeleteTodoItem(origin);
+            var success = await _sut.DeleteTodoItem(origin);
 
             // Assert
             success.Should().BeTrue();
-            var created = _sut.GetAllTodoItems();
+            var created = await _sut.GetAllTodoItems();
             created.Where(m => m.Name == origin.Name).Should().HaveCount(0);
         }
 
         [Fact]
-        public void DeleteItem_ShouldNotDeleteItem_WhenTheSpecifiedItemNotExists()
+        public async Task DeleteItem_ShouldNotDeleteItem_WhenTheSpecifiedItemNotExists()
         {
             // Arrange
             var origin = new TodoItem {Name = "TodoTask"};
-            _sut.InsertTodoItem(origin);
-            origin.Id = _sut.GetAllTodoItems().First(m => m.Name == origin.Name).Id;
+            await _sut.InsertTodoItem(origin);
+            var itemByName = await _sut.GetTodoItemByName(origin.Name);
+            origin.Id = itemByName.Id;
 
             // Act
-            var success = _sut.DeleteTodoItem(new TodoItem {Id = origin.Id + 1});
+            var success = await _sut.DeleteTodoItem(new TodoItem {Id = origin.Id + 1});
 
             // Assert
             success.Should().BeFalse();
-            var created = _sut.GetAllTodoItems();
+            var created = await _sut.GetAllTodoItems();
             created.Where(m => m.Name == origin.Name).Should().HaveCount(1);
         }
 
@@ -202,17 +210,18 @@ namespace TodoList.Application.UnitTests
         [InlineData("Task Name", 10, Status.InProgress)]
         [InlineData("Task123", 10)]
         [InlineData("Task")]
-        public void GetItem_ShouldReturnItem_WhenSpecifiedItemExists(string name, int priority = 0,
+        public async Task GetItem_ShouldReturnItem_WhenSpecifiedItemExists(string name, int priority = 0,
             Status status = default)
         {
             // Arrange
             var origin = new TodoItem {Name = name, Priority = priority, Status = status};
-            _sut.InsertTodoItem(origin);
-            origin.Id = _sut.GetAllTodoItems().First(m => m.Name == origin.Name).Id;
+            await _sut.InsertTodoItem(origin);
+            var itemByName = await _sut.GetTodoItemByName(origin.Name);
+            origin.Id = itemByName.Id;
 
             // Act
-            var getById = _sut.GetTodoItemById(origin.Id);
-            var getByName = _sut.GetTodoItemByName(origin.Name);
+            var getById = await _sut.GetTodoItemById(origin.Id);
+            var getByName = await _sut.GetTodoItemByName(origin.Name);
 
             // Assert
             getById.Should().BeEquivalentTo(getByName);
@@ -220,14 +229,14 @@ namespace TodoList.Application.UnitTests
         }
 
         [Fact]
-        public void GetItem_ShouldNotReturnItem_WhenSpecifiedItemNotExists()
+        public async Task GetItem_ShouldNotReturnItem_WhenSpecifiedItemNotExists()
         {
             // Arrange
             const int arbitraryId = 12345;
             const string arbitraryName = "Non Existent Item Name";
 
             // Act
-            var getById = _sut.GetTodoItemById(arbitraryId);
+            var getById = await _sut.GetTodoItemById(arbitraryId);
             var getByName = _sut.GetTodoItemByName(arbitraryName);
 
             // Assert

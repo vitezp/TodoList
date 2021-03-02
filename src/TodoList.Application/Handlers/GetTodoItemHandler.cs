@@ -33,8 +33,7 @@ namespace TodoList.Application.Handlers
                 return new TodoResponse(new ErrorResponse(error));
             }
 
-            //TODO await
-            var selectedTodoItem = _todoItemRepository.GetTodoItemById(todoId);
+            var selectedTodoItem = await _todoItemRepository.GetTodoItemById(todoId).ConfigureAwait(false);
 
             _logger.LogInformation($"Got: '{selectedTodoItem}' from the system'");
             return _mapper.Map<TodoResponse>(selectedTodoItem);

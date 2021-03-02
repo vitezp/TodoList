@@ -2,9 +2,10 @@ import React from 'react'
 
 type Props = TodoProps & {
     deleteTodo: (id: number) => void
+    setEditing: any
 }
 
-const Todo: React.FC<Props> = ({ todo, deleteTodo }) => {
+const Todo: React.FC<Props> = ({ todo, deleteTodo, setEditing }) => {
   const checkTodo: string = todo.status === 'Completed' ? `line-through` : ''
   return (
     <div className='Card'>
@@ -18,7 +19,7 @@ const Todo: React.FC<Props> = ({ todo, deleteTodo }) => {
       </div>
       <div className='Card--button'>
         <button
-          //onClick={() => updateTodo(todo)}
+          onClick={() => setEditing(todo)}
           className={todo.status === 'Completed' ? `hide-button` : 'Card--button__done'}
         >
           Edit

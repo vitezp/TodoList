@@ -13,6 +13,10 @@ using TodoList.Domain.Extensions;
 
 namespace TodoList.Application.Handlers
 {
+    /// <summary>
+    /// Handlers serves purpose of processing logic for the API controllers. That allows us to easily test the handlers
+    /// separately while we have pretty thin controllers not doing any logic. 
+    /// </summary>
     public class CreateTodoItemHandler : IRequestHandler<CreateTodoCommand, TodoResponse>
     {
         private readonly ITodoItemRepository _todoItemRepository;
@@ -31,7 +35,7 @@ namespace TodoList.Application.Handlers
         {
             var todoItem = _mapper.Map<TodoItem>(request.TodoRequest);
 
-            var itemAlreadyExists = _todoItemRepository.GetTodoItemByName(todoItem.Name);
+            var itemAlreadyExists = await _todoItemRepository.GetTodoItemByName(todoItem.Name).ConfigureAwait(false);
             if (itemAlreadyExists != null)
             {
                 var error = $"Todo item '{request.TodoRequest.Name}' already exists";
@@ -39,8 +43,7 @@ namespace TodoList.Application.Handlers
                 return new TodoResponse {ErrorResponse = new ErrorResponse(error)}; 
             }
 
-            //TODO await
-            var success = _todoItemRepository.InsertTodoItem(todoItem);
+            var success = await _todoItemRepository.InsertTodoItem(todoItem).ConfigureAwait(false);
             if (!success)
             {
                 var error = $"Unable to create item with name: '{request.TodoRequest.Name}'";

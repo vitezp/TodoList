@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using TodoList.Application.Interfaces;
@@ -44,7 +45,7 @@ Priority INTEGER DEFAULT 0 CHECK (Priority >= 0 AND Priority <= 100));";
             }
 
             _log.LogInformation("Database initialized with table 'TodoItem'");
-            
+
             //Dummy seed to some initial data
             InsertTodoItem(new TodoItem()
                 {Name = "Send CV to the Barclays", Priority = 70, Status = Status.Completed});
@@ -53,10 +54,15 @@ Priority INTEGER DEFAULT 0 CHECK (Priority >= 0 AND Priority <= 100));";
         }
 
 
-        public IEnumerable<TodoItem> GetAllTodoItems()
+        public Task<IEnumerable<TodoItem>> GetAllTodoItems()
         {
             const string getItems = @"SELECT * FROM TodoItem;";
 
+            return Task.Run(() => NewMethod(getItems));
+        }
+
+        private IEnumerable<TodoItem> NewMethod(string getItems)
+        {
             using var cmd = new SqliteCommand(getItems, _connection);
             using var reader = cmd.ExecuteReader();
 
@@ -74,52 +80,53 @@ Priority INTEGER DEFAULT 0 CHECK (Priority >= 0 AND Priority <= 100));";
             }
         }
 
-        public TodoItem GetTodoItemById(int id)
+        public Task<TodoItem> GetTodoItemById(int id)
         {
             const string getItems = @"SELECT * FROM TodoItem WHERE Id = @Id;";
 
             using var cmd = new SqliteCommand(getItems, _connection);
             cmd.Parameters.AddWithValue("@Id", id);
 
-            return ExecuteReader(cmd);
+            return Task.Run(() => ExecuteReader(cmd));
         }
 
-        public TodoItem GetTodoItemByName(string name)
+        public Task<TodoItem> GetTodoItemByName(string name)
         {
             const string getItems = @"SELECT * FROM TodoItem WHERE Name = @Name COLLATE NOCASE;";
 
             using var cmd = new SqliteCommand(getItems, _connection);
             cmd.Parameters.AddWithValue("@Name", name);
 
-            return ExecuteReader(cmd);
+            return Task.Run(() => ExecuteReader(cmd));
         }
 
-        public bool InsertTodoItem(TodoItem todoItem)
+        public Task<bool> InsertTodoItem(TodoItem todoItem)
         {
             //could be used Insert On Duplicate Update but separating makes sense
             const string insertItem =
                 @"INSERT INTO TodoItem (Name, Status, Priority) VALUES (@Name, @Status, @Priority)";
 
             _log.LogInformation($"Inserting Todo item:'{todoItem}'");
-            return ExecuteNonQuery(todoItem, insertItem, $"Error inserting todoItem: '{todoItem}'") > 0;
+            return Task.Run(() => ExecuteNonQuery(todoItem, insertItem, $"Error inserting todoItem: '{todoItem}'") > 0);
         }
 
-        public bool UpdateTodoItem(TodoItem todoItem)
+        public Task<bool> UpdateTodoItem(TodoItem todoItem)
         {
             const string updateItems =
                 @"UPDATE TodoItem SET Name = @Name, Status = @Status, Priority = @Priority WHERE Id = @Id;";
 
             _log.LogInformation($"Updating Todo item:'{todoItem}'");
-            return ExecuteNonQuery(todoItem, updateItems, "Error updating todoItem: '{todoItem}") > 0;
+            return Task.Run(() => ExecuteNonQuery(todoItem, updateItems, "Error updating todoItem: '{todoItem}") > 0);
         }
 
-        public bool DeleteTodoItem(TodoItem todoItem)
+        public Task<bool> DeleteTodoItem(TodoItem todoItem)
         {
             const string deleteItems =
                 @"DELETE FROM TodoItem WHERE Id = @Id;";
 
             _log.LogInformation($"Deleting Todo item with id:'{todoItem.Id}'");
-            return ExecuteNonQuery(todoItem, deleteItems, $"Error deleting todoItem with id: '{todoItem.Id}'") > 0;
+            return Task.Run(() =>
+                ExecuteNonQuery(todoItem, deleteItems, $"Error deleting todoItem with id: '{todoItem.Id}'") > 0);
         }
 
         public void Dispose()
@@ -134,7 +141,6 @@ Priority INTEGER DEFAULT 0 CHECK (Priority >= 0 AND Priority <= 100));";
             cmd.Parameters.AddWithValue("@Name", todoItem.Name);
             cmd.Parameters.AddWithValue("@Status", todoItem.Status);
             cmd.Parameters.AddWithValue("@Priority", todoItem.Priority);
-            // Id to update IsDeleted for Delete request
             cmd.Parameters.AddWithValue("@Id", todoItem.Id);
             try
             {

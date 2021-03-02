@@ -57,6 +57,19 @@ body {
     color: #ca0000;
 }
 
+select {
+    padding: 0.5rem 1rem;
+    margin: 0;
+    border-radius:10px;
+    color:black;
+    border:none;
+    outline:none;
+    display: inline-block;
+    cursor:pointer;
+    margin: 0.3rem 1rem 0 0;
+
+  }
+
 .Card--button__done {
     border: 1px solid #00aa69;
     color: #00aa69;
